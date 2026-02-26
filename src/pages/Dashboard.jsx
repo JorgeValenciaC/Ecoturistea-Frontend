@@ -1,23 +1,24 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Compass, Heart, User, X, Check, Menu, Map } from 'lucide-react';
+import { Search, Filter, Compass, Heart, User, X, Check, Menu, Map as MapIcon } from 'lucide-react';
 import RouteCard from '../components/RouteCard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [difficultyFilter, setDifficultyFilter] = useState("Todas");
+  const [filterOpen, setFilterOpen] = useState(false); // Controla el menú de filtros
+  const [difficultyFilter, setDifficultyFilter] = useState("Todas"); // La dificultad seleccionada
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Explorar');
 
-  // Menú simplificado: Solo Explorar, Favoritos y Perfil
   const menuItems = [
     { name: 'Explorar', icon: Compass, path: '/dashboard' },
     { name: 'Favoritos', icon: Heart, path: '#' },
     { name: 'Mi Perfil', icon: User, path: '/profile' },
   ];
+
+  const difficulties = ["Todas", "Fácil", "Media", "Difícil", "Muy Difícil", "Experto"];
 
   const routes = [
     { title: "Páramo de Belmira", location: "Belmira, Antioquia", duration: "7 Horas", difficulty: "Difícil", rating: "4.9", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800" },
@@ -34,14 +35,13 @@ const Dashboard = () => {
     { title: "La Catedral", location: "Envigado, Antioquia", duration: "4 Horas", difficulty: "Media", rating: "4.4", image: "https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&q=80&w=800" }
   ];
 
+  // Lógica de filtrado (Search + Difficulty)
   const filteredRoutes = routes.filter(route => {
     const matchesSearch = route.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           route.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty = difficultyFilter === "Todas" || route.difficulty === difficultyFilter;
     return matchesSearch && matchesDifficulty;
   });
-
-  const difficulties = ["Todas", "Fácil", "Media", "Difícil", "Muy Difícil", "Experto"];
 
   return (
     <div className="min-h-screen bg-stone-50 flex font-sans">
@@ -85,12 +85,11 @@ const Dashboard = () => {
             />
             <motion.div 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white z-[70] lg:hidden p-8 flex flex-col"
+              className="fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white z-[70] lg:hidden p-8 flex flex-col shadow-2xl"
             >
               <div className="flex items-center justify-between mb-12">
                 <h1 className="text-xl font-black text-green-800">ECOTURISTEA</h1>
-                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-stone-100 rounded-full"><X size={20} /></button>
+                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-stone-100 rounded-full text-stone-600"><X size={20} /></button>
               </div>
               <nav className="space-y-4 flex-1">
                 {menuItems.map((item) => (
@@ -121,7 +120,7 @@ const Dashboard = () => {
             </button>
             <div>
               <h2 className="text-2xl lg:text-3xl font-black text-stone-800 tracking-tight">Hola, Jorge 👋</h2>
-              <p className="hidden md:block text-stone-500 font-medium tracking-tight">Explora las mejores rutas de Antioquia.</p>
+              <p className="hidden md:block text-stone-500 font-medium">Explora las mejores rutas de Antioquia.</p>
             </div>
           </div>
           
@@ -129,17 +128,56 @@ const Dashboard = () => {
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
               <input 
-                type="text" placeholder="Buscar rutas..." value={searchTerm}
+                type="text" 
+                placeholder="Buscar rutas..." 
+                value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 pr-10 py-3 lg:py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-green-700 w-full md:w-80 outline-none text-sm"
+                className="pl-11 pr-10 py-3 lg:py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-green-700 w-full md:w-80 outline-none text-sm font-medium"
               />
+              {searchTerm && <X size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 cursor-pointer" onClick={() => setSearchTerm("")} />}
             </div>
-            <button onClick={() => setFilterOpen(!filterOpen)} className={`p-3 lg:p-4 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}>
-              <Filter size={20} />
-            </button>
+
+            {/* BOTÓN Y MENÚ DE FILTRO */}
+            <div className="relative">
+              <button 
+                onClick={() => setFilterOpen(!filterOpen)} 
+                className={`p-3 lg:p-4 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}
+              >
+                <Filter size={20} />
+              </button>
+
+              <AnimatePresence>
+                {filterOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: 10 }} 
+                    className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-stone-100 p-4 z-50"
+                  >
+                    <p className="text-xs font-black text-stone-400 uppercase tracking-widest mb-3 px-2">Dificultad</p>
+                    <div className="space-y-1">
+                      {difficulties.map((diff) => (
+                        <button 
+                          key={diff} 
+                          onClick={() => { 
+                            setDifficultyFilter(diff); 
+                            setFilterOpen(false); // Cerramos el menú al elegir
+                          }} 
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition-colors ${difficultyFilter === diff ? 'bg-green-50 text-green-700' : 'text-stone-600 hover:bg-stone-50'}`}
+                        >
+                          {diff}
+                          {difficultyFilter === diff && <Check size={16} />}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
+        {/* CONTENIDO PRINCIPAL */}
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-xl lg:text-2xl font-black text-stone-800 tracking-tight">
              {difficultyFilter === "Todas" ? "Rutas populares" : `Rutas ${difficultyFilter}`}
@@ -157,8 +195,14 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-stone-200">
-            <Map className="mx-auto text-stone-300 mb-4" size={40} />
-            <p className="text-stone-500 font-bold">No encontramos esa ruta 🍃</p>
+            <MapIcon className="mx-auto text-stone-300 mb-4" size={40} />
+            <p className="text-stone-500 font-bold">No hay rutas con estos filtros 🍃</p>
+            <button 
+              onClick={() => { setSearchTerm(""); setDifficultyFilter("Todas"); }}
+              className="mt-2 text-green-700 font-black underline"
+            >
+              Limpiar filtros
+            </button>
           </div>
         )}
       </main>
