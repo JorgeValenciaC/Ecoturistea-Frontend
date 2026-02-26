@@ -1,25 +1,29 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/login'; 
 import Register from './pages/register';
-import Dashboard from './pages/Dashboard'; // Importamos el nuevo Dashboard
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile'; // 1. Importamos la nueva página de Perfil
 
 function App() {
   return (
     <div className="App">
       <Routes>
-        {/* 1. Ruta raíz: Redirige al login al abrir la app */}
+        {/* Ruta raíz: Redirige al login al abrir la app */}
         <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* 2. Ruta de Registro */}
+        {/* Ruta de Registro */}
         <Route path="/register" element={<Register />} />
 
-        {/* 3. Ruta de Login */}
+        {/* Ruta de Login */}
         <Route path="/login" element={<Login />} />
 
-        {/* 4. Ruta del Dashboard (La nueva página principal) */}
+        {/* Ruta del Dashboard (Explorador de rutas) */}
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* 5. Ruta de error 404 */}
+        {/* 2. Ruta de Perfil (La nueva página independiente) */}
+        <Route path="/profile" element={<Profile />} />
+
+        {/* Ruta de error 404 */}
         <Route path="*" element={
           <div className="flex items-center justify-center h-screen bg-stone-50">
             <div className="text-center">
@@ -28,6 +32,12 @@ function App() {
                 404 - Bosque no encontrado
               </h1>
               <p className="text-stone-500 mt-2 font-medium">Parece que te has salido del sendero.</p>
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="mt-4 text-green-700 font-bold underline"
+              >
+                Volver al sendero principal
+              </button>
             </div>
           </div>
         } />

@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'; // 1. Importamos el hook para navegar
 import { Search, Filter, Compass, Map, Calendar, Heart, User, X, Check, Menu } from 'lucide-react';
 import RouteCard from '../components/RouteCard';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('Explorar');
+  const navigate = useNavigate(); // 2. Inicializamos la navegación
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [difficultyFilter, setDifficultyFilter] = useState("Todas");
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Estado para el menú móvil
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('Explorar');
 
   const menuItems = [
-    { name: 'Explorar', icon: Compass },
-    { name: 'Mis Rutas', icon: Map },
-    { name: 'Reservas', icon: Calendar },
-    { name: 'Favoritos', icon: Heart },
-    { name: 'Mi Perfil', icon: User },
+    { name: 'Explorar', icon: Compass, path: '/dashboard' },
+    { name: 'Mis Rutas', icon: Map, path: '#' },
+    { name: 'Reservas', icon: Calendar, path: '#' },
+    { name: 'Favoritos', icon: Heart, path: '#' },
+    { name: 'Mi Perfil', icon: User, path: '/profile' }, // 3. Ruta de perfil
   ];
 
   const routes = [
@@ -63,7 +65,10 @@ const Dashboard = () => {
           ))}
         </nav>
         <div className="pt-8 border-t border-stone-100">
-          <button className="w-full flex items-center space-x-4 px-6 py-4 text-stone-400 font-bold hover:text-green-700 transition-colors">
+          <button 
+            onClick={() => navigate('/profile')} // 4. Navega a Perfil
+            className="w-full flex items-center space-x-4 px-6 py-4 text-stone-400 font-bold hover:text-green-700 transition-colors"
+          >
             <User size={22} />
             <span>Mi Perfil</span>
           </button>
@@ -92,7 +97,14 @@ const Dashboard = () => {
                 {menuItems.map((item) => (
                   <button
                     key={item.name}
-                    onClick={() => { setActiveTab(item.name); setIsMenuOpen(false); }}
+                    onClick={() => { 
+                      if(item.path !== '#') {
+                        navigate(item.path);
+                      } else {
+                        setActiveTab(item.name);
+                      }
+                      setIsMenuOpen(false); 
+                    }}
                     className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white shadow-lg' : 'text-stone-400 hover:bg-stone-50'}`}
                   >
                     <item.icon size={22} />
@@ -107,7 +119,6 @@ const Dashboard = () => {
 
       <main className="flex-1 p-4 lg:p-12 overflow-y-auto w-full">
         
-        {/* HEADER CON HAMBURGUESA EN MÓVIL */}
         <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 lg:mb-12 gap-6">
           <div className="flex items-center justify-between w-full md:w-auto">
             <div className="flex items-center gap-4">
@@ -119,7 +130,6 @@ const Dashboard = () => {
                 <p className="hidden md:block text-stone-500 font-medium">¿Qué rincón de Antioquia descubriremos hoy?</p>
               </div>
             </div>
-            {/* Solo se ve en móvil para dar marca */}
             <h1 className="lg:hidden text-lg font-black text-green-800 tracking-tighter">ET</h1>
           </div>
           
@@ -157,7 +167,6 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* TITULO Y CONTENIDO */}
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-xl lg:text-2xl font-black text-stone-800 tracking-tight">
              {difficultyFilter === "Todas" ? "Rutas populares" : `Rutas ${difficultyFilter}`}
