@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; // No olvides que debes tener instalado lucide-react
 import Input from '../components/input';
 
 const Login = () => {
   const [isPC, setIsPC] = useState(window.innerWidth >= 1024);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsPC(window.innerWidth >= 1024);
@@ -21,17 +23,40 @@ const Login = () => {
           initial={isPC ? { x: 150, opacity: 0 } : {}}
           animate={isPC ? { x: 0, opacity: 1 } : {}}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full lg:w-[40%] flex items-center justify-center p-8 lg:p-20"
+          className="w-full lg:w-[40%] flex items-center justify-center p-8 lg:p-20 bg-white"
         >
           <div className="w-full max-w-md">
-            <h2 className="text-4xl lg:text-5xl font-black text-green-900 mb-4">¡Bienvenido!</h2>
-            <p className="text-stone-500 mb-8 lg:mb-12 text-base lg:text-lg">Inicia sesión para continuar tu aventura.</p>
+            <h2 className="text-4xl lg:text-5xl font-black text-green-900 mb-4 tracking-tight">¡Bienvenido!</h2>
+            <p className="text-stone-500 mb-8 lg:mb-12 text-base lg:text-lg font-medium leading-relaxed">
+              Inicia sesión para continuar tu aventura.
+            </p>
 
-            <form className="space-y-6">
-              <Input label="Email" type="email" placeholder="aventurero@email.com" />
-              <Input label="Contraseña" type="password" placeholder="••••••••" />
+            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+              <Input label="Email" type="email" placeholder="jorge@email.com" />
               
-              <button className="w-full bg-green-900 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-6">
+              {/* Contraseña: Se ve solo al mantener presionado el icono */}
+              <div className="relative group">
+                <Input 
+                  label="Contraseña" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••••" 
+                />
+                <button
+                  type="button"
+                  // Eventos de Mouse
+                  onMouseDown={() => setShowPassword(true)}
+                  onMouseUp={() => setShowPassword(false)}
+                  onMouseLeave={() => setShowPassword(false)}
+                  // Eventos Táctiles (Celulares)
+                  onTouchStart={() => setShowPassword(true)}
+                  onTouchEnd={() => setShowPassword(false)}
+                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 select-none outline-none"
+                >
+                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                </button>
+              </div>
+              
+              <button className="w-full bg-green-900 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-6 hover:bg-green-800 transition-all active:scale-[0.98]">
                 Ingresar al sistema
               </button>
             </form>
@@ -54,6 +79,7 @@ const Login = () => {
             className="absolute inset-0 w-full h-full object-cover"
             alt="Bosque Niebla"
           />
+          <div className="absolute inset-0 bg-black/10 backdrop-brightness-95" />
         </motion.div>
       </div>
     </div>

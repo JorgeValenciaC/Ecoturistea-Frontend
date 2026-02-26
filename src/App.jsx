@@ -7,7 +7,7 @@ function App() {
     <div className="App">
       <Routes>
         {/* 1. Ruta raíz: Redirige al registro al abrir la app */}
-        <Route path="/" element={<Navigate to="/register" />} />
+        <Route path="/" element={<Navigate to="/login" />} />
 
         {/* 2. Ruta de Registro */}
         <Route path="/register" element={<Register />} />
