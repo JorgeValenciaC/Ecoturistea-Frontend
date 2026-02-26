@@ -1,18 +1,27 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react'; // No olvides que debes tener instalado lucide-react
+import { Link, useNavigate } from 'react-router-dom'; // 1. Importamos useNavigate
+import { Eye, EyeOff } from 'lucide-react';
 import Input from '../components/input';
 
 const Login = () => {
   const [isPC, setIsPC] = useState(window.innerWidth >= 1024);
   const [showPassword, setShowPassword] = useState(false);
+  
+  const navigate = useNavigate(); // 2. Inicializamos la función navigate
 
   useEffect(() => {
     const handleResize = () => setIsPC(window.innerWidth >= 1024);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // 3. Función para manejar el clic
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Aquí iría la validación de usuario en el futuro
+    navigate('/dashboard'); // Redirige a la ruta que creamos en App.jsx
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-stone-100 p-0 lg:p-12 font-sans">
@@ -31,23 +40,22 @@ const Login = () => {
               Inicia sesión para continuar tu aventura.
             </p>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <Input label="Email" type="email" placeholder="jorge@email.com" />
+            {/* 4. Añadimos el onSubmit al formulario */}
+            <form className="space-y-6" onSubmit={handleLogin}>
+              <Input label="Email" type="email" placeholder="jorge@email.com" required />
               
-              {/* Contraseña: Se ve solo al mantener presionado el icono */}
               <div className="relative group">
                 <Input 
                   label="Contraseña" 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
+                  required
                 />
                 <button
                   type="button"
-                  // Eventos de Mouse
                   onMouseDown={() => setShowPassword(true)}
                   onMouseUp={() => setShowPassword(false)}
                   onMouseLeave={() => setShowPassword(false)}
-                  // Eventos Táctiles (Celulares)
                   onTouchStart={() => setShowPassword(true)}
                   onTouchEnd={() => setShowPassword(false)}
                   className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 select-none outline-none"
@@ -56,7 +64,10 @@ const Login = () => {
                 </button>
               </div>
               
-              <button className="w-full bg-green-900 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-6 hover:bg-green-800 transition-all active:scale-[0.98]">
+              <button 
+                type="submit" // 5. Aseguramos que sea tipo submit
+                className="w-full bg-green-900 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-6 hover:bg-green-800 transition-all active:scale-[0.98]"
+              >
                 Ingresar al sistema
               </button>
             </form>
@@ -67,7 +78,7 @@ const Login = () => {
           </div>
         </motion.div>
 
-        {/* LADO IZQUIERDO: Imagen (Solo PC) */}
+        {/* LADO IZQUIERDO: Imagen */}
         <motion.div 
           initial={isPC ? { x: -150, opacity: 0 } : {}}
           animate={isPC ? { x: 0, opacity: 1 } : {}}
