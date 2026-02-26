@@ -1,23 +1,22 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom'; // 1. Importamos el hook para navegar
-import { Search, Filter, Compass, Map, Calendar, Heart, User, X, Check, Menu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Compass, Heart, User, X, Check, Menu, Map } from 'lucide-react';
 import RouteCard from '../components/RouteCard';
 
 const Dashboard = () => {
-  const navigate = useNavigate(); // 2. Inicializamos la navegación
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [difficultyFilter, setDifficultyFilter] = useState("Todas");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Explorar');
 
+  // Menú simplificado: Solo Explorar, Favoritos y Perfil
   const menuItems = [
     { name: 'Explorar', icon: Compass, path: '/dashboard' },
-    { name: 'Mis Rutas', icon: Map, path: '#' },
-    { name: 'Reservas', icon: Calendar, path: '#' },
     { name: 'Favoritos', icon: Heart, path: '#' },
-    { name: 'Mi Perfil', icon: User, path: '/profile' }, // 3. Ruta de perfil
+    { name: 'Mi Perfil', icon: User, path: '/profile' },
   ];
 
   const routes = [
@@ -53,11 +52,11 @@ const Dashboard = () => {
           <h1 className="text-2xl font-black text-green-800 tracking-tighter italic">ECOTURISTEA</h1>
         </div>
         <nav className="space-y-2 flex-1">
-          {menuItems.slice(0, 4).map((item) => (
+          {menuItems.slice(0, 2).map((item) => (
             <button
               key={item.name}
               onClick={() => setActiveTab(item.name)}
-              className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white shadow-lg' : 'text-stone-400 hover:text-green-700'}`}
+              className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white shadow-lg shadow-green-200' : 'text-stone-400 hover:text-green-700'}`}
             >
               <item.icon size={22} />
               <span>{item.name}</span>
@@ -66,7 +65,7 @@ const Dashboard = () => {
         </nav>
         <div className="pt-8 border-t border-stone-100">
           <button 
-            onClick={() => navigate('/profile')} // 4. Navega a Perfil
+            onClick={() => navigate('/profile')}
             className="w-full flex items-center space-x-4 px-6 py-4 text-stone-400 font-bold hover:text-green-700 transition-colors"
           >
             <User size={22} />
@@ -75,7 +74,7 @@ const Dashboard = () => {
         </div>
       </aside>
 
-      {/* MOBILE MENU OVERLAY */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -87,25 +86,22 @@ const Dashboard = () => {
             <motion.div 
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white z-[70] lg:hidden p-8 shadow-2xl flex flex-col"
+              className="fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white z-[70] lg:hidden p-8 flex flex-col"
             >
               <div className="flex items-center justify-between mb-12">
                 <h1 className="text-xl font-black text-green-800">ECOTURISTEA</h1>
-                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-stone-100 rounded-full text-stone-600"><X size={20} /></button>
+                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-stone-100 rounded-full"><X size={20} /></button>
               </div>
               <nav className="space-y-4 flex-1">
                 {menuItems.map((item) => (
                   <button
                     key={item.name}
                     onClick={() => { 
-                      if(item.path !== '#') {
-                        navigate(item.path);
-                      } else {
-                        setActiveTab(item.name);
-                      }
+                      if(item.path !== '#') navigate(item.path);
+                      else setActiveTab(item.name);
                       setIsMenuOpen(false); 
                     }}
-                    className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white shadow-lg' : 'text-stone-400 hover:bg-stone-50'}`}
+                    className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white' : 'text-stone-400'}`}
                   >
                     <item.icon size={22} />
                     <span>{item.name}</span>
@@ -118,19 +114,15 @@ const Dashboard = () => {
       </AnimatePresence>
 
       <main className="flex-1 p-4 lg:p-12 overflow-y-auto w-full">
-        
         <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 lg:mb-12 gap-6">
-          <div className="flex items-center justify-between w-full md:w-auto">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-3 bg-white rounded-xl shadow-sm text-green-800">
-                <Menu size={24} />
-              </button>
-              <div>
-                <h2 className="text-2xl lg:text-3xl font-black text-stone-800 tracking-tight">Hola, Jorge 👋</h2>
-                <p className="hidden md:block text-stone-500 font-medium">¿Qué rincón de Antioquia descubriremos hoy?</p>
-              </div>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-3 bg-white rounded-xl shadow-sm text-green-800">
+              <Menu size={24} />
+            </button>
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-black text-stone-800 tracking-tight">Hola, Jorge 👋</h2>
+              <p className="hidden md:block text-stone-500 font-medium tracking-tight">Explora las mejores rutas de Antioquia.</p>
             </div>
-            <h1 className="lg:hidden text-lg font-black text-green-800 tracking-tighter">ET</h1>
           </div>
           
           <div className="flex items-center space-x-3 w-full md:w-auto">
@@ -141,29 +133,10 @@ const Dashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-11 pr-10 py-3 lg:py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-green-700 w-full md:w-80 outline-none text-sm"
               />
-              {searchTerm && <X size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 cursor-pointer" onClick={() => setSearchTerm("")} />}
             </div>
-
-            <div className="relative">
-              <button onClick={() => setFilterOpen(!filterOpen)} className={`p-3 lg:p-4 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}>
-                <Filter size={20} />
-              </button>
-              <AnimatePresence>
-                {filterOpen && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-stone-100 p-4 z-50">
-                    <p className="text-xs font-black text-stone-400 uppercase tracking-widest mb-3 px-2">Dificultad</p>
-                    <div className="space-y-1">
-                      {difficulties.map((diff) => (
-                        <button key={diff} onClick={() => { setDifficultyFilter(diff); setFilterOpen(false); }} className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition-colors ${difficultyFilter === diff ? 'bg-green-50 text-green-700' : 'text-stone-600 hover:bg-stone-50'}`}>
-                          {diff}
-                          {difficultyFilter === diff && <Check size={16} />}
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <button onClick={() => setFilterOpen(!filterOpen)} className={`p-3 lg:p-4 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}>
+              <Filter size={20} />
+            </button>
           </div>
         </header>
 
@@ -177,20 +150,15 @@ const Dashboard = () => {
         </div>
 
         {filteredRoutes.length > 0 ? (
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
-            <AnimatePresence>
-              {filteredRoutes.map((route) => (
-                <motion.div key={route.title} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
-                  <RouteCard {...route} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
+            {filteredRoutes.map((route) => (
+              <RouteCard key={route.title} {...route} />
+            ))}
+          </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-stone-200">
             <Map className="mx-auto text-stone-300 mb-4" size={40} />
-            <p className="text-stone-500 font-bold">No hay rutas aquí 🍃</p>
-            <button onClick={() => { setSearchTerm(""); setDifficultyFilter("Todas"); }} className="mt-2 text-green-700 font-black underline">Ver todo</button>
+            <p className="text-stone-500 font-bold">No encontramos esa ruta 🍃</p>
           </div>
         )}
       </main>
