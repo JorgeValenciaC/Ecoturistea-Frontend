@@ -84,7 +84,7 @@ const Login = () => {
               <Input 
                 label="Email" 
                 type="email" 
-                placeholder="jorge@email.com" 
+                placeholder="example@gmail.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
@@ -122,7 +122,7 @@ const Login = () => {
                     <span>Verificando...</span>
                   </>
                 ) : (
-                  "Ingresar al sistema"
+                  "Iniciar Sesion"
                 )}
               </button>
             </form>
