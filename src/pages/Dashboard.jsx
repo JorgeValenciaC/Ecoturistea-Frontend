@@ -8,11 +8,12 @@ import { supabase } from '../lib/supabaseClient';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false); // Controla si se ve el panel de dificultades
+  const [filterOpen, setFilterOpen] = useState(false);
   const [difficultyFilter, setDifficultyFilter] = useState("Todas");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userName, setUserName] = useState("Viajero");
 
+  // EFECTO: Verificar usuario y cargar nombre
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -43,7 +44,6 @@ const Dashboard = () => {
     { title: "La Catedral", location: "Envigado, Antioquia", duration: "4 Horas", difficulty: "Media", rating: "4.4", image: "https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&q=80&w=800" }
   ];
 
-  // Lógica de filtrado (Combinando búsqueda + dificultad)
   const filteredRoutes = routes.filter(route => {
     const matchesSearch = route.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           route.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -64,6 +64,43 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-stone-50 flex font-sans overflow-x-hidden">
       
+      {/* MENÚ MÓVIL (HAMBURGUESA) */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] lg:hidden"
+            />
+            <motion.div 
+              initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }}
+              className="fixed left-0 top-0 bottom-0 w-72 bg-white z-[70] p-6 shadow-2xl lg:hidden flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-10">
+                <h2 className="text-2xl font-black text-green-900 italic">ECOTURISTEA</h2>
+                <button onClick={() => setIsMenuOpen(false)}><X size={24} /></button>
+              </div>
+              <nav className="space-y-4 flex-1">
+                <button onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 w-full p-4 bg-green-50 text-green-800 rounded-2xl font-bold italic">
+                   <Compass size={22}/> Explorar
+                </button>
+                <div className="flex items-center justify-between p-4 text-stone-300 font-bold italic opacity-60">
+                   <div className="flex items-center gap-4"><Heart size={22}/> Favoritos</div>
+                   <span className="text-[8px] bg-stone-100 px-2 py-1 rounded-lg text-stone-400 font-black uppercase">Pronto</span>
+                </div>
+                <button onClick={() => {navigate('/profile'); setIsMenuOpen(false)}} className="flex items-center gap-4 w-full p-4 text-stone-400 font-bold italic">
+                   <User size={22}/> Mi Perfil
+                </button>
+              </nav>
+              <button onClick={handleLogout} className="flex items-center gap-4 p-4 text-red-500 font-bold italic border-t border-stone-100">
+                <LogOut size={22}/> Cerrar Sesión
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* SIDEBAR PC */}
       <aside className="hidden lg:flex w-72 bg-white border-r border-stone-200 flex-col p-6 h-screen sticky top-0">
         <h2 className="text-2xl font-black text-green-900 italic mb-10 uppercase">Ecoturistea</h2>
@@ -75,7 +112,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-4"><Heart size={22} /> Favoritos</div>
             <span className="text-[8px] bg-stone-100 px-2 py-1 rounded-lg text-stone-400 font-black">Pronto</span>
           </button>
-          <button onClick={() => navigate('/profile')} className="flex items-center gap-4 w-full p-4 text-stone-400 hover:text-green-700 rounded-2xl font-bold italic">
+          <button onClick={() => navigate('/profile')} className="flex items-center gap-4 w-full p-4 text-stone-400 hover:text-green-700 rounded-2xl font-bold italic transition-all">
             <User size={22} /> Mi Perfil
           </button>
         </nav>
@@ -84,6 +121,7 @@ const Dashboard = () => {
         </button>
       </aside>
 
+      {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 w-full relative">
         <header className="sticky top-0 z-50 bg-stone-50/80 backdrop-blur-md px-4 lg:px-12 py-4 border-b border-stone-200/50">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -105,7 +143,6 @@ const Dashboard = () => {
                   className="pl-11 pr-10 py-3 bg-white border-none rounded-2xl shadow-sm w-full md:w-80 outline-none focus:ring-2 focus:ring-green-700/20"
                 />
               </div>
-              {/* BOTÓN DE FILTRO: Debe cambiar el estado 'filterOpen' */}
               <button 
                 onClick={() => setFilterOpen(!filterOpen)} 
                 className={`p-3 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}
@@ -115,7 +152,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* PANEL DE FILTROS: Se muestra según 'filterOpen' */}
+          {/* PANEL FILTROS */}
           <AnimatePresence>
             {filterOpen && (
               <motion.div 
@@ -132,7 +169,7 @@ const Dashboard = () => {
                       className={`px-4 py-2 rounded-full text-[10px] font-black uppercase italic transition-all ${
                         difficultyFilter === diff 
                         ? 'bg-green-700 text-white shadow-md' 
-                        : 'bg-white text-stone-500 border border-stone-200'
+                        : 'bg-white text-stone-Stone-500 border border-stone-200'
                       }`}
                     >
                       {diff}
@@ -144,7 +181,7 @@ const Dashboard = () => {
           </AnimatePresence>
         </header>
 
-        {/* LISTADO DE RUTAS */}
+        {/* GRILLA DE RUTAS */}
         <div className="px-4 lg:px-12 py-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
             {filteredRoutes.length > 0 ? (
