@@ -11,15 +11,17 @@ const Dashboard = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [difficultyFilter, setDifficultyFilter] = useState("Todas");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userName, setUserName] = useState("Viajero");
+  const [userData, setUserData] = useState({ name: "Viajero", avatar_url: null });
 
-  // EFECTO: Verificar usuario y cargar nombre
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const name = user.user_metadata?.full_name || user.email.split('@')[0];
-        setUserName(name.charAt(0).toUpperCase() + name.slice(1));
+        setUserData({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          avatar_url: user.user_metadata?.avatar_url || null
+        });
       } else {
         navigate('/login');
       }
@@ -64,7 +66,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-stone-50 flex font-sans overflow-x-hidden">
       
-      {/* MENÚ MÓVIL (HAMBURGUESA) */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -90,7 +91,10 @@ const Dashboard = () => {
                    <span className="text-[8px] bg-stone-100 px-2 py-1 rounded-lg text-stone-400 font-black uppercase">Pronto</span>
                 </div>
                 <button onClick={() => {navigate('/profile'); setIsMenuOpen(false)}} className="flex items-center gap-4 w-full p-4 text-stone-400 font-bold italic">
-                   <User size={22}/> Mi Perfil
+                   <div className="w-8 h-8 rounded-lg bg-stone-100 overflow-hidden mr-1">
+                      {userData.avatar_url ? <img src={userData.avatar_url} className="w-full h-full object-cover" /> : <User size={18} className="m-auto mt-1"/>}
+                   </div>
+                   Mi Perfil
                 </button>
               </nav>
               <button onClick={handleLogout} className="flex items-center gap-4 p-4 text-red-500 font-bold italic border-t border-stone-100">
@@ -101,7 +105,6 @@ const Dashboard = () => {
         )}
       </AnimatePresence>
 
-      {/* SIDEBAR PC */}
       <aside className="hidden lg:flex w-72 bg-white border-r border-stone-200 flex-col p-6 h-screen sticky top-0">
         <h2 className="text-2xl font-black text-green-900 italic mb-10 uppercase">Ecoturistea</h2>
         <nav className="space-y-2 flex-1">
@@ -113,7 +116,10 @@ const Dashboard = () => {
             <span className="text-[8px] bg-stone-100 px-2 py-1 rounded-lg text-stone-400 font-black">Pronto</span>
           </button>
           <button onClick={() => navigate('/profile')} className="flex items-center gap-4 w-full p-4 text-stone-400 hover:text-green-700 rounded-2xl font-bold italic transition-all">
-            <User size={22} /> Mi Perfil
+             <div className="w-8 h-8 rounded-lg bg-stone-100 overflow-hidden mr-3">
+                {userData.avatar_url ? <img src={userData.avatar_url} className="w-full h-full object-cover" /> : <User size={18} className="m-auto mt-1"/>}
+             </div>
+             Mi Perfil
           </button>
         </nav>
         <button onClick={handleLogout} className="flex items-center gap-4 w-full p-4 text-red-500 font-bold italic border-t border-stone-100 mt-auto">
@@ -121,7 +127,6 @@ const Dashboard = () => {
         </button>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 w-full relative">
         <header className="sticky top-0 z-50 bg-stone-50/80 backdrop-blur-md px-4 lg:px-12 py-4 border-b border-stone-200/50">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -129,7 +134,20 @@ const Dashboard = () => {
               <button onClick={() => setIsMenuOpen(true)} className="p-3 bg-white rounded-xl shadow-md text-green-800 lg:hidden">
                 <Menu size={24} />
               </button>
-              <h2 className="text-xl lg:text-3xl font-black text-stone-800 tracking-tight italic">Hola, {userName} 👋</h2>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-white overflow-hidden border-2 border-white shadow-sm">
+                  {userData.avatar_url ? (
+                    <img src={userData.avatar_url} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-green-50 text-green-700 font-black">
+                      {userData.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <h2 className="text-xl lg:text-3xl font-black text-stone-800 tracking-tight italic">
+                  Hola, {userData.name} 👋
+                </h2>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2 w-full md:w-auto">
@@ -152,7 +170,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* PANEL FILTROS */}
           <AnimatePresence>
             {filterOpen && (
               <motion.div 
@@ -169,7 +186,7 @@ const Dashboard = () => {
                       className={`px-4 py-2 rounded-full text-[10px] font-black uppercase italic transition-all ${
                         difficultyFilter === diff 
                         ? 'bg-green-700 text-white shadow-md' 
-                        : 'bg-white text-stone-Stone-500 border border-stone-200'
+                        : 'bg-white text-stone-500 border border-stone-200'
                       }`}
                     >
                       {diff}
@@ -181,25 +198,18 @@ const Dashboard = () => {
           </AnimatePresence>
         </header>
 
-        {/* GRILLA DE RUTAS */}
         <div className="px-4 lg:px-12 py-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
-            {filteredRoutes.length > 0 ? (
-              filteredRoutes.map((route) => (
-                <motion.div 
-                  layout
-                  key={route.title} 
-                  onClick={() => handleViewDetails(route.title)} 
-                  className="cursor-pointer active:scale-95 transition-transform"
-                >
-                  <RouteCard {...route} />
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full py-20 text-center text-stone-400 font-bold italic">
-                No hay rutas con estos criterios... 🏔️
-              </div>
-            )}
+            {filteredRoutes.map((route) => (
+              <motion.div 
+                layout
+                key={route.title} 
+                onClick={() => handleViewDetails(route.title)} 
+                className="cursor-pointer active:scale-95 transition-transform"
+              >
+                <RouteCard {...route} />
+              </motion.div>
+            ))}
           </div>
         </div>
       </main>
