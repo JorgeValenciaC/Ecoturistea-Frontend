@@ -1,22 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Compass, Heart, User, X, Check, Menu, Map as MapIcon } from 'lucide-react';
+import { Search, Filter, Compass, Heart, User, X, Menu, LogOut } from 'lucide-react';
 import RouteCard from '../components/RouteCard';
+import { supabase } from '../lib/supabaseClient';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false); // Controla el menú de filtros
-  const [difficultyFilter, setDifficultyFilter] = useState("Todas"); // La dificultad seleccionada
+  const [filterOpen, setFilterOpen] = useState(false); // Controla si se ve el panel de dificultades
+  const [difficultyFilter, setDifficultyFilter] = useState("Todas");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('Explorar');
+  const [userName, setUserName] = useState("Viajero");
 
-  const menuItems = [
-    { name: 'Explorar', icon: Compass, path: '/dashboard' },
-    { name: 'Favoritos', icon: Heart, path: '#' },
-    { name: 'Mi Perfil', icon: User, path: '/profile' },
-  ];
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const name = user.user_metadata?.full_name || user.email.split('@')[0];
+        setUserName(name.charAt(0).toUpperCase() + name.slice(1));
+      } else {
+        navigate('/login');
+      }
+    };
+    checkUser();
+  }, [navigate]);
 
   const difficulties = ["Todas", "Fácil", "Media", "Difícil", "Muy Difícil", "Experto"];
 
@@ -24,7 +32,7 @@ const Dashboard = () => {
     { title: "Páramo de Belmira", location: "Belmira, Antioquia", duration: "7 Horas", difficulty: "Difícil", rating: "4.9", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800" },
     { title: "Reserva El Romeral", location: "La Estrella", duration: "4 Horas", difficulty: "Media", rating: "4.7", image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&q=80&w=800" },
     { title: "Parque Arví", location: "Santa Elena", duration: "3 Horas", difficulty: "Fácil", rating: "4.8", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=800" },
-    { title: "Salto del Buey", location: "La Ceja / Abejorral", duration: "5 Horas", difficulty: "Media", rating: "5.0", image: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&q=80&w=800" },
+    { title: "Salto del Buey", location: "La Ceja / Abejorral", duration: "5 Horas", difficulty: "Media", rating: "5.0", image: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&q=80&w=1200" },
     { title: "Cerro El Volador", location: "Robledo, Medellín", duration: "1.5 Horas", difficulty: "Fácil", rating: "4.4", image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800" },
     { title: "Cerro Quitasol", location: "Bello, Antioquia", duration: "6 Horas", difficulty: "Difícil", rating: "4.7", image: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800" },
     { title: "Cueva del Esplendor", location: "Jardín, Antioquia", duration: "4 Horas", difficulty: "Media", rating: "4.9", image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=800" },
@@ -35,7 +43,7 @@ const Dashboard = () => {
     { title: "La Catedral", location: "Envigado, Antioquia", duration: "4 Horas", difficulty: "Media", rating: "4.4", image: "https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&q=80&w=800" }
   ];
 
-  // Lógica de filtrado (Search + Difficulty)
+  // Lógica de filtrado (Combinando búsqueda + dificultad)
   const filteredRoutes = routes.filter(route => {
     const matchesSearch = route.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           route.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -43,168 +51,120 @@ const Dashboard = () => {
     return matchesSearch && matchesDifficulty;
   });
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
+  const handleViewDetails = (title) => {
+    const routeId = title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ /g, "-");
+    navigate(`/route/${routeId}`);
+  };
+
   return (
-    <div className="min-h-screen bg-stone-50 flex font-sans">
+    <div className="min-h-screen bg-stone-50 flex font-sans overflow-x-hidden">
       
-      {/* SIDEBAR DESKTOP */}
-      <aside className="hidden lg:flex w-72 bg-white border-r border-stone-200 flex-col p-8 sticky top-0 h-screen">
-        <div className="mb-12">
-          <h1 className="text-2xl font-black text-green-800 tracking-tighter italic">ECOTURISTEA</h1>
-        </div>
+      {/* SIDEBAR PC */}
+      <aside className="hidden lg:flex w-72 bg-white border-r border-stone-200 flex-col p-6 h-screen sticky top-0">
+        <h2 className="text-2xl font-black text-green-900 italic mb-10 uppercase">Ecoturistea</h2>
         <nav className="space-y-2 flex-1">
-          {menuItems.slice(0, 2).map((item) => (
-            <button
-              key={item.name}
-              onClick={() => setActiveTab(item.name)}
-              className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white shadow-lg shadow-green-200' : 'text-stone-400 hover:text-green-700'}`}
-            >
-              <item.icon size={22} />
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </nav>
-        <div className="pt-8 border-t border-stone-100">
-          <button 
-            onClick={() => navigate('/profile')}
-            className="w-full flex items-center space-x-4 px-6 py-4 text-stone-400 font-bold hover:text-green-700 transition-colors"
-          >
-            <User size={22} />
-            <span>Mi Perfil</span>
+          <button className="flex items-center gap-4 w-full p-4 bg-green-50 text-green-800 rounded-2xl font-bold italic">
+            <Compass size={22} /> Explorar
           </button>
-        </div>
+          <button className="flex items-center justify-between w-full p-4 text-stone-300 rounded-2xl font-bold italic cursor-not-allowed">
+            <div className="flex items-center gap-4"><Heart size={22} /> Favoritos</div>
+            <span className="text-[8px] bg-stone-100 px-2 py-1 rounded-lg text-stone-400 font-black">Pronto</span>
+          </button>
+          <button onClick={() => navigate('/profile')} className="flex items-center gap-4 w-full p-4 text-stone-400 hover:text-green-700 rounded-2xl font-bold italic">
+            <User size={22} /> Mi Perfil
+          </button>
+        </nav>
+        <button onClick={handleLogout} className="flex items-center gap-4 w-full p-4 text-red-500 font-bold italic border-t border-stone-100 mt-auto">
+          <LogOut size={22} /> Cerrar Sesión
+        </button>
       </aside>
 
-      {/* MOBILE MENU */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-black/50 z-[60] lg:hidden backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
-              className="fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white z-[70] lg:hidden p-8 flex flex-col shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-12">
-                <h1 className="text-xl font-black text-green-800">ECOTURISTEA</h1>
-                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-stone-100 rounded-full text-stone-600"><X size={20} /></button>
+      <main className="flex-1 w-full relative">
+        <header className="sticky top-0 z-50 bg-stone-50/80 backdrop-blur-md px-4 lg:px-12 py-4 border-b border-stone-200/50">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsMenuOpen(true)} className="p-3 bg-white rounded-xl shadow-md text-green-800 lg:hidden">
+                <Menu size={24} />
+              </button>
+              <h2 className="text-xl lg:text-3xl font-black text-stone-800 tracking-tight italic">Hola, {userName} 👋</h2>
+            </div>
+
+            <div className="flex items-center space-x-2 w-full md:w-auto">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Buscar rutas..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-11 pr-10 py-3 bg-white border-none rounded-2xl shadow-sm w-full md:w-80 outline-none focus:ring-2 focus:ring-green-700/20"
+                />
               </div>
-              <nav className="space-y-4 flex-1">
-                {menuItems.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => { 
-                      if(item.path !== '#') navigate(item.path);
-                      else setActiveTab(item.name);
-                      setIsMenuOpen(false); 
-                    }}
-                    className={`w-full flex items-center space-x-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === item.name ? 'bg-green-700 text-white' : 'text-stone-400'}`}
-                  >
-                    <item.icon size={22} />
-                    <span>{item.name}</span>
-                  </button>
-                ))}
-              </nav>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <main className="flex-1 p-4 lg:p-12 overflow-y-auto w-full">
-        <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 lg:mb-12 gap-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-3 bg-white rounded-xl shadow-sm text-green-800">
-              <Menu size={24} />
-            </button>
-            <div>
-              <h2 className="text-2xl lg:text-3xl font-black text-stone-800 tracking-tight">Hola, Jorge 👋</h2>
-              <p className="hidden md:block text-stone-500 font-medium">Explora las mejores rutas de Antioquia.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3 w-full md:w-auto">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Buscar rutas..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-11 pr-10 py-3 lg:py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-green-700 w-full md:w-80 outline-none text-sm font-medium"
-              />
-              {searchTerm && <X size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 cursor-pointer" onClick={() => setSearchTerm("")} />}
-            </div>
-
-            {/* BOTÓN Y MENÚ DE FILTRO */}
-            <div className="relative">
+              {/* BOTÓN DE FILTRO: Debe cambiar el estado 'filterOpen' */}
               <button 
                 onClick={() => setFilterOpen(!filterOpen)} 
-                className={`p-3 lg:p-4 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}
+                className={`p-3 rounded-2xl shadow-sm transition-all ${filterOpen || difficultyFilter !== "Todas" ? 'bg-green-700 text-white' : 'bg-white text-stone-400'}`}
               >
                 <Filter size={20} />
               </button>
-
-              <AnimatePresence>
-                {filterOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, y: 10 }} 
-                    className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-stone-100 p-4 z-50"
-                  >
-                    <p className="text-xs font-black text-stone-400 uppercase tracking-widest mb-3 px-2">Dificultad</p>
-                    <div className="space-y-1">
-                      {difficulties.map((diff) => (
-                        <button 
-                          key={diff} 
-                          onClick={() => { 
-                            setDifficultyFilter(diff); 
-                            setFilterOpen(false); // Cerramos el menú al elegir
-                          }} 
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold transition-colors ${difficultyFilter === diff ? 'bg-green-50 text-green-700' : 'text-stone-600 hover:bg-stone-50'}`}
-                        >
-                          {diff}
-                          {difficultyFilter === diff && <Check size={16} />}
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </div>
+
+          {/* PANEL DE FILTROS: Se muestra según 'filterOpen' */}
+          <AnimatePresence>
+            {filterOpen && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-wrap gap-2 py-4 border-t border-stone-200 mt-4">
+                  {difficulties.map((diff) => (
+                    <button
+                      key={diff}
+                      onClick={() => setDifficultyFilter(diff)}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase italic transition-all ${
+                        difficultyFilter === diff 
+                        ? 'bg-green-700 text-white shadow-md' 
+                        : 'bg-white text-stone-500 border border-stone-200'
+                      }`}
+                    >
+                      {diff}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </header>
 
-        {/* CONTENIDO PRINCIPAL */}
-        <div className="flex items-center justify-between mb-6">
-          <h4 className="text-xl lg:text-2xl font-black text-stone-800 tracking-tight">
-             {difficultyFilter === "Todas" ? "Rutas populares" : `Rutas ${difficultyFilter}`}
-          </h4>
-          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase">
-            {filteredRoutes.length} resultados
-          </span>
-        </div>
-
-        {filteredRoutes.length > 0 ? (
+        {/* LISTADO DE RUTAS */}
+        <div className="px-4 lg:px-12 py-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
-            {filteredRoutes.map((route) => (
-              <RouteCard key={route.title} {...route} />
-            ))}
+            {filteredRoutes.length > 0 ? (
+              filteredRoutes.map((route) => (
+                <motion.div 
+                  layout
+                  key={route.title} 
+                  onClick={() => handleViewDetails(route.title)} 
+                  className="cursor-pointer active:scale-95 transition-transform"
+                >
+                  <RouteCard {...route} />
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 text-center text-stone-400 font-bold italic">
+                No hay rutas con estos criterios... 🏔️
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-stone-200">
-            <MapIcon className="mx-auto text-stone-300 mb-4" size={40} />
-            <p className="text-stone-500 font-bold">No hay rutas con estos filtros 🍃</p>
-            <button 
-              onClick={() => { setSearchTerm(""); setDifficultyFilter("Todas"); }}
-              className="mt-2 text-green-700 font-black underline"
-            >
-              Limpiar filtros
-            </button>
-          </div>
-        )}
+        </div>
       </main>
     </div>
   );

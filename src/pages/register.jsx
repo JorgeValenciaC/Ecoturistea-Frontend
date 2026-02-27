@@ -1,19 +1,69 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react'; 
+import { Link, useNavigate } from 'react-router-dom'; // Agregamos useNavigate
+import { Eye, EyeOff, Loader2 } from 'lucide-react'; 
 import Input from '../components/input';
+import { supabase } from '../lib/supabaseClient'; // Importamos la conexión
 
 const Register = () => {
+  const navigate = useNavigate();
   const [isPC, setIsPC] = useState(window.innerWidth >= 1024);
+  
+  // ESTADOS PARA EL FORMULARIO
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // ESTADOS DE UI
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsPC(window.innerWidth >= 1024);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // FUNCIÓN PARA REGISTRAR
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
+
+    // Validación básica de coincidencia
+    if (password !== confirmPassword) {
+      setErrorMsg("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Registro en Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName, // Guardamos el nombre en el metadata
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        alert("¡Registro exitoso! Ya puedes iniciar sesión.");
+        navigate('/login');
+      }
+    } catch (error) {
+      setErrorMsg(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-stone-100 p-0 lg:p-12 font-sans">
@@ -32,52 +82,79 @@ const Register = () => {
               Únete a la mayor red de ecoturismo en el Valle de Aburrá.
             </p>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-              <Input label="Nombre completo" type="text" placeholder="Ej: Jorge Valencia" />
-              <Input label="Correo electrónico" type="email" placeholder="jorge@ecoturistea.com" />
+            {/* Mensaje de Error */}
+            {errorMsg && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-bold border border-red-100">
+                {errorMsg}
+              </div>
+            )}
+
+            <form className="space-y-5" onSubmit={handleRegister}>
+              <Input 
+                label="Nombre completo" 
+                type="text" 
+                placeholder="Ej: Jorge Valencia" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+              <Input 
+                label="Correo electrónico" 
+                type="email" 
+                placeholder="jorge@ecoturistea.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
               
-              {/* Contraseña Principal: Mantener presionado para ver */}
               <div className="relative group">
                 <Input 
                   label="Contraseña" 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
                 <button
                   type="button"
                   onMouseDown={() => setShowPassword(true)}
                   onMouseUp={() => setShowPassword(false)}
-                  onMouseLeave={() => setShowPassword(false)} // Por seguridad si arrastran el mouse fuera
-                  onTouchStart={() => setShowPassword(true)} // Soporte para celulares
+                  onTouchStart={() => setShowPassword(true)}
                   onTouchEnd={() => setShowPassword(false)}
-                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-0 group-hover:opacity-100 select-none outline-none"
+                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-100 select-none outline-none"
                 >
                   {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
 
-              {/* Confirmar Contraseña: Mantener presionado para ver */}
               <div className="relative group">
                 <Input 
                   label="Confirma tu contraseña" 
                   type={showConfirmPassword ? "text" : "password"} 
                   placeholder="••••••••" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
                 />
                 <button
                   type="button"
                   onMouseDown={() => setShowConfirmPassword(true)}
                   onMouseUp={() => setShowConfirmPassword(false)}
-                  onMouseLeave={() => setShowConfirmPassword(false)}
                   onTouchStart={() => setShowConfirmPassword(true)}
                   onTouchEnd={() => setShowConfirmPassword(false)}
-                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-0 group-hover:opacity-100 select-none outline-none"
+                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-100 select-none outline-none"
                 >
                   {showConfirmPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
               
-              <button className="w-full bg-green-700 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-4 lg:mt-8 hover:bg-green-800 transition-all active:scale-[0.98]">
-                Registrarme ahora
+              <button 
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-700 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-4 lg:mt-8 hover:bg-green-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "Registrarme ahora"}
               </button>
             </form>
 
@@ -94,7 +171,6 @@ const Register = () => {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="hidden lg:block lg:w-[60%] relative bg-stone-200"
         >
-          {/* ... mismo contenido de imagen ... */}
           <img 
             src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1600" 
             className="absolute inset-0 w-full h-full object-cover"

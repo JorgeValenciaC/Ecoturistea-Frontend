@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom'; // 1. Importamos useNavigate
-import { Eye, EyeOff } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Loader2 } from 'lucide-react'; // Añadimos Loader2 para el feedback
+import { supabase } from '../lib/supabaseClient'; // Importamos la conexión
 import Input from '../components/input';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isPC, setIsPC] = useState(window.innerWidth >= 1024);
-  const [showPassword, setShowPassword] = useState(false);
   
-  const navigate = useNavigate(); // 2. Inicializamos la función navigate
+  // ESTADOS DEL FORMULARIO
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  // ESTADOS DE UI
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsPC(window.innerWidth >= 1024);
@@ -16,11 +24,32 @@ const Login = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 3. Función para manejar el clic
-  const handleLogin = (e) => {
+  // FUNCIÓN DE LOGIN REAL
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Aquí iría la validación de usuario en el futuro
-    navigate('/dashboard'); // Redirige a la ruta que creamos en App.jsx
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      // Intentamos iniciar sesión con Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Si todo sale bien, vamos al dashboard
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      // Manejo de errores amigable
+      setErrorMsg("Credenciales incorrectas o usuario no registrado.");
+      console.error("Error detallado:", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,35 +69,61 @@ const Login = () => {
               Inicia sesión para continuar tu aventura.
             </p>
 
-            {/* 4. Añadimos el onSubmit al formulario */}
+            {/* Mensaje de Error Visual */}
+            {errorMsg && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-bold border border-red-100"
+              >
+                {errorMsg}
+              </motion.div>
+            )}
+
             <form className="space-y-6" onSubmit={handleLogin}>
-              <Input label="Email" type="email" placeholder="jorge@email.com" required />
+              <Input 
+                label="Email" 
+                type="email" 
+                placeholder="jorge@email.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
               
               <div className="relative group">
                 <Input 
                   label="Contraseña" 
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
                   type="button"
                   onMouseDown={() => setShowPassword(true)}
                   onMouseUp={() => setShowPassword(false)}
-                  onMouseLeave={() => setShowPassword(false)}
                   onTouchStart={() => setShowPassword(true)}
                   onTouchEnd={() => setShowPassword(false)}
-                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 select-none outline-none"
+                  className="absolute right-4 top-[40px] text-stone-400 hover:text-green-700 transition-all duration-300 opacity-100 select-none outline-none"
                 >
                   {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
               
               <button 
-                type="submit" // 5. Aseguramos que sea tipo submit
-                className="w-full bg-green-900 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-6 hover:bg-green-800 transition-all active:scale-[0.98]"
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-900 text-white font-bold py-4 lg:py-5 rounded-2xl shadow-xl text-lg mt-6 hover:bg-green-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                Ingresar al sistema
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={20} />
+                    <span>Verificando...</span>
+                  </>
+                ) : (
+                  "Ingresar al sistema"
+                )}
               </button>
             </form>
 

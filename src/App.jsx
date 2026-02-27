@@ -3,10 +3,14 @@ import Login from './pages/login';
 import Register from './pages/register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile'; // 1. Importamos la nueva página de Perfil
+import RouteDetail from './pages/RouteDetail';
+import ScrollToTop from './components/ScrollToTop'; // 1. Importarlo
 
 function App() {
   return (
     <div className="App">
+      
+      <ScrollToTop />
       <Routes>
         {/* Ruta raíz: Redirige al login al abrir la app */}
         <Route path="/" element={<Navigate to="/login" />} />
@@ -22,6 +26,8 @@ function App() {
 
         {/* 2. Ruta de Perfil (La nueva página independiente) */}
         <Route path="/profile" element={<Profile />} />
+
+        <Route path="/route/:id" element={<RouteDetail />} />
 
         {/* Ruta de error 404 */}
         <Route path="*" element={

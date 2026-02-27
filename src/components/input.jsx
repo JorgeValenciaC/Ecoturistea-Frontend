@@ -1,18 +1,17 @@
-const Input = ({ label, type, name, placeholder, value, onChange, error }) => {
+const Input = ({ label, type, placeholder, value, onChange, required }) => {
   return (
-    <div className="flex flex-col gap-1 mb-4">
-      <label className="text-green-900 font-semibold text-sm">{label}</label>
+    <div className="flex flex-col space-y-2 w-full">
+      <label className="text-sm font-bold text-stone-700 ml-1 italic uppercase tracking-wider">
+        {label}
+      </label>
       <input
         type={type}
-        name={name}
         placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className={`p-3 rounded-lg border outline-none transition-all ${
-          error ? 'border-red-500' : 'border-stone-300 focus:border-green-600'
-        }`}
+        value={value}         // Conecta con el estado
+        onChange={onChange}   // Captura lo que escribes
+        required={required}
+        className="w-full px-5 py-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-green-700 outline-none transition-all font-medium text-stone-800"
       />
-      {error && <span className="text-red-500 text-xs">{error}</span>}
     </div>
   );
 };
