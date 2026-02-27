@@ -1,4 +1,20 @@
+# Configuración de despliegue para Netlify
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Regla para que React Router funcione al refrescar la página (F5)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Configuración de seguridad básica
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
